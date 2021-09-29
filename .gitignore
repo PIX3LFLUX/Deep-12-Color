@@ -1,0 +1,14 @@
+tristan/*.ppm
+tristan/*/*.ppm
+tristan/*/*/*.ppm
+
+tristan/*.mp4
+tristan/*/*.mp4
+tristan/*/*/*.mp4
+
+tristan/.DS_Store
+tristan/*/.DS_Store
+tristan/*/*/.DS_Store
+
+*/*/main
+*/*/main.dSYM

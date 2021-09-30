@@ -9,7 +9,7 @@ FRAMES_DEBUG=100
 
 cp ../debug_* .
 
-for i in {0..$FRAMES_DEBUG}; do
+for i in {0..100}; do
   cp debug_0.ppm debug_${i}_0.ppm
   cp debug_1.ppm debug_${i}_1.ppm
   cp debug_2.ppm debug_${i}_2.ppm

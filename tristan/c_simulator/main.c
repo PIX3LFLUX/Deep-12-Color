@@ -86,6 +86,21 @@ int ppm_write(char * filename, int width, int height, int maxval, uint16_t * dat
   return 0;
 }
 
+/*
+ * return the one dimensional index in image data
+ * positions are :
+ * 0 1
+ * 2 3
+ */
+
+static inline
+int ind(int width, int tile_x, int tile_y, int color, int position) {
+  int x = (2*tile_x + width*2*tile_y + (position & 0b01) + width*((position & 0b10) >> 1))*3 + color;
+#ifdef DEBUG
+  // printf("Accessing index %i\n", x);
+#endif
+  return x;
+}
 
 #define DELIMITERS " \n"
 
@@ -137,7 +152,7 @@ int main(int argc, char ** argv) {
   }
   int maxval = atoi(token);
 
-#ifdef wDEBUG
+#ifdef DEBUG
   printf("Header says: width: %i, height: %i, maxval: %i\n", width, height, maxval);
 #endif
 
@@ -197,10 +212,16 @@ int main(int argc, char ** argv) {
   for (i = 0; i < 4; i++) {
 	debug[i] = malloc(width*height*3*sizeof(uint16_t));
   }
+  uint16_t * debug_spatial[4];
+  for (i = 0; i < 4; i++) {
+	debug_spatial[i] = malloc(width*height*3*sizeof(uint16_t));
+  }
 
   /*
    * Generate 8bit base image.
    */
+
+  printf("About to generate base image.\n");
 
   for( int i = 0; i < width*height*3; i++) {
 	output[0][i] = data[i] >> (BITS_TM + 2);
@@ -215,85 +236,210 @@ int main(int argc, char ** argv) {
 	debug[0][i] = 0;
   }
 
-
-
-
   for( int i = 0; i < width*height*3; i++) {
-	int offset = ((((i/3) / width) % 2)*2 + (i/3) % width) % 4;
-	if (i%3 == 0) {
-	  /*
-	   * TODO: comment. this is totally incomprehensible
-	   */
-	  switch((data[i] & 0b0000000000001100) >> 2) {
-		case 1: 
-		  printf("Adding 1/4 pixel\n");
-		  output[offset][i]++;
-		  output[offset][i+1]++;
-		  output[offset][i+2]++;
+	debug_spatial[0][i] = 0;
+	debug_spatial[1][i] = 0;
+	debug_spatial[2][i] = 0;
+	debug_spatial[0][i] = 0;
+  }
 
-		  debug[offset][i]++;
-		  debug[offset][i+1]++;
-		  debug[offset][i+2]++;
-		  break;
-		case 2: 
-		  printf("Adding 1/2 pixel\n");
-		  output[offset][i]++;
-		  output[offset][i+1]++;
-		  output[offset][i+2]++;
-		  output[(offset + 2) % 4][i]++;
-		  output[(offset + 2) % 4][i+1]++;
-		  output[(offset + 2) % 4][i+2]++;
 
-		  output[offset][i]++;
-		  output[offset][i+1]++;
-		  output[offset][i+2]++;
-		  output[(offset + 2) % 4][i]++;
-		  output[(offset + 2) % 4][i+1]++;
-		  output[(offset + 2) % 4][i+2]++;
-			break;
-		case 3: 
-		  printf("Adding 3/4 pixel\n");
-		  output[offset][i]++;
-		  output[offset][i+1]++;
-		  output[offset][i+2]++;
-		  output[(offset + 1) % 4][i]++;
-		  output[(offset + 1) % 4][i+1]++;
-		  output[(offset + 1) % 4][i+2]++;
-		  output[(offset + 2) % 4][i]++;
-		  output[(offset + 2) % 4][i+1]++;
-		  output[(offset + 2) % 4][i+2]++;
 
-		  debug[offset][i]++;
-		  debug[offset][i+1]++;
-		  debug[offset][i+2]++;
-		  debug[(offset + 1) % 4][i]++;
-		  debug[(offset + 1) % 4][i+1]++;
-		  debug[(offset + 1) % 4][i+2]++;
-		  debug[(offset + 2) % 4][i]++;
-		  debug[(offset + 2) % 4][i+1]++;
-		  debug[(offset + 2) % 4][i+2]++;
-			break;
-	  }
+  printf("Starting temporal dithering.\n");
+
+  for( int i = 0; i < width*height; i++) {
+	//printf("%i ", ((((i/3) / width) % 2)*2 + (i/3) % width) % 4);
+	int offset = ((((i) / width) % 2)*2 + (i) % width) % 4;
+	/*
+	 * TODO: comment. this is totally incomprehensible
+	 * support triple color, not just one
+	 */
+	switch((data[i] & 0b0000000000001100) >> 2) {
+	  case 1: 
+		printf("Adding 1/4 pixel\n");
+		output[offset][i]++; // r
+		output[offset][i+1]++; // g 
+		output[offset][i+2]++; // b
+
+		debug[offset][i]++;
+		debug[offset][i+1]++;
+		debug[offset][i+2]++;
+		break;
+	  case 2: 
+		printf("Adding 1/2 pixel\n");
+		output[offset][i]++;
+		output[offset][i+1]++;
+		output[offset][i+2]++;
+		output[(offset + 2) % 4][i]++;
+		output[(offset + 2) % 4][i+1]++;
+		output[(offset + 2) % 4][i+2]++;
+
+		debug[offset][i]++;
+		debug[offset][i+1]++;
+		debug[offset][i+2]++;
+		debug[(offset + 2) % 4][i]++;
+		debug[(offset + 2) % 4][i+1]++;
+		debug[(offset + 2) % 4][i+2]++;
+		break;
+	  case 3: 
+		printf("Adding 3/4 pixel\n");
+		output[offset][i]++;
+		output[offset][i+1]++;
+		output[offset][i+2]++;
+		output[(offset + 1) % 4][i]++;
+		output[(offset + 1) % 4][i+1]++;
+		output[(offset + 1) % 4][i+2]++;
+		output[(offset + 2) % 4][i]++;
+		output[(offset + 2) % 4][i+1]++;
+		output[(offset + 2) % 4][i+2]++;
+
+		debug[offset][i]++;
+		debug[offset][i+1]++;
+		debug[offset][i+2]++;
+		debug[(offset + 1) % 4][i]++;
+		debug[(offset + 1) % 4][i+1]++;
+		debug[(offset + 1) % 4][i+2]++;
+		debug[(offset + 2) % 4][i]++;
+		debug[(offset + 2) % 4][i+1]++;
+		debug[(offset + 2) % 4][i+2]++;
+		break;
+	  default:
+		break;
 
 	}
   }
-  ppm_write("output_0.ppm", width, height, 255, output[0]);
-  ppm_write("output_1.ppm", width, height, 255, output[1]);
-  ppm_write("output_2.ppm", width, height, 255, output[2]);
-  ppm_write("output_3.ppm", width, height, 255, output[3]);
-  ppm_write("debug_0.ppm", width, height, 1, debug[0]);
-  ppm_write("debug_1.ppm", width, height, 1, debug[1]);
-  ppm_write("debug_2.ppm", width, height, 1, debug[2]);
-  ppm_write("debug_3.ppm", width, height, 1, debug[3]);
+
+  /*
+   * logic for spatial dithering
+   */
+  printf("About to start spatial dithering.\n");
+
+
+  // loop over image in tiles of 2x2
+  if (width%2 || height % 2) {
+	printf("Image not splitable in tiles of size 2x2\n");
+	exit(1);
+  }
+  for( int y = 0; y < height/2; y++) {
+	for( int x = 0; x < width/2; x++) {
+	  for( int color = 0; color < 3; color++) {
+	  // are all 4 pixels equal?
+	  // if no -> do nothing
+	  // if yes -> switch statement
+	  // TODO !!!!!!!
+		if ( 1 ) {
+		  /*
+			data[ind(width, x, y, color, 0)]
+			== data[ind(width, x, y, color, 1)]
+			== data[ind(width, x, y, color, 2)]
+			== data[ind(width, x, y, color, 3)]
+		   ) {
+		   */
+		  printf("Found equal tile!\n");
+		  switch(data[ind(width, x, y, color, 0)] & 0b0000000000000011) {
+			case 1:
+			  output[0][ind(width, x, y, color, 0)]++;
+
+			  output[1][ind(width, x, y, color, 1)]++;
+
+			  output[2][ind(width, x, y, color, 2)]++;
+
+			  output[3][ind(width, x, y, color, 3)]++;
+			  debug_spatial[0][ind(width, x, y, color, 0)]++;
+
+			  debug_spatial[1][ind(width, x, y, color, 1)]++;
+
+			  debug_spatial[2][ind(width, x, y, color, 2)]++;
+
+			  debug_spatial[3][ind(width, x, y, color, 3)]++;
+			  break;
+			case 2:
+			  output[0][ind(width, x, y, color, 0)]++;
+			  output[0][ind(width, x, y, color, 3)]++;
+
+			  output[1][ind(width, x, y, color, 1)]++;
+			  output[1][ind(width, x, y, color, 2)]++;
+
+			  output[2][ind(width, x, y, color, 0)]++;
+			  output[2][ind(width, x, y, color, 3)]++;
+
+			  output[3][ind(width, x, y, color, 1)]++;
+			  output[3][ind(width, x, y, color, 2)]++;
+			  debug_spatial[0][ind(width, x, y, color, 0)]++;
+			  debug_spatial[0][ind(width, x, y, color, 3)]++;
+
+			  debug_spatial[1][ind(width, x, y, color, 1)]++;
+			  debug_spatial[1][ind(width, x, y, color, 2)]++;
+
+			  debug_spatial[2][ind(width, x, y, color, 0)]++;
+			  debug_spatial[2][ind(width, x, y, color, 3)]++;
+
+			  debug_spatial[3][ind(width, x, y, color, 1)]++;
+			  debug_spatial[3][ind(width, x, y, color, 2)]++;
+			  break;
+			case 3:
+			  output[0][ind(width, x, y, color, 0)]++;
+			  output[0][ind(width, x, y, color, 1)]++;
+			  output[0][ind(width, x, y, color, 2)]++;
+
+			  output[1][ind(width, x, y, color, 1)]++;
+			  output[1][ind(width, x, y, color, 2)]++;
+			  output[1][ind(width, x, y, color, 3)]++;
+
+			  output[2][ind(width, x, y, color, 2)]++;
+			  output[2][ind(width, x, y, color, 3)]++;
+			  output[2][ind(width, x, y, color, 0)]++;
+
+			  output[3][ind(width, x, y, color, 3)]++;
+			  output[3][ind(width, x, y, color, 0)]++;
+			  output[3][ind(width, x, y, color, 1)]++;
+			  debug_spatial[0][ind(width, x, y, color, 0)]++;
+			  debug_spatial[0][ind(width, x, y, color, 1)]++;
+			  debug_spatial[0][ind(width, x, y, color, 2)]++;
+
+			  debug_spatial[1][ind(width, x, y, color, 1)]++;
+			  debug_spatial[1][ind(width, x, y, color, 2)]++;
+			  debug_spatial[1][ind(width, x, y, color, 3)]++;
+
+			  debug_spatial[2][ind(width, x, y, color, 2)]++;
+			  debug_spatial[2][ind(width, x, y, color, 3)]++;
+			  debug_spatial[2][ind(width, x, y, color, 0)]++;
+
+			  debug_spatial[3][ind(width, x, y, color, 3)]++;
+			  debug_spatial[3][ind(width, x, y, color, 0)]++;
+			  debug_spatial[3][ind(width, x, y, color, 1)]++;
+			  break;
+			default:
+			  break;
+		  }
+		}
+
+
+
+	  }
+	}
+	}
+	ppm_write("output_0.ppm", width, height, 255, output[0]);
+	ppm_write("output_1.ppm", width, height, 255, output[1]);
+	ppm_write("output_2.ppm", width, height, 255, output[2]);
+	ppm_write("output_3.ppm", width, height, 255, output[3]);
+	ppm_write("debug_0.ppm", width, height, 1, debug[0]);
+	ppm_write("debug_1.ppm", width, height, 1, debug[1]);
+	ppm_write("debug_2.ppm", width, height, 1, debug[2]);
+	ppm_write("debug_3.ppm", width, height, 1, debug[3]);
+	ppm_write("debug_spatial_0.ppm", width, height, 1, debug_spatial[0]);
+	ppm_write("debug_spatial_1.ppm", width, height, 1, debug_spatial[1]);
+	ppm_write("debug_spatial_2.ppm", width, height, 1, debug_spatial[2]);
+	ppm_write("debug_spatial_3.ppm", width, height, 1, debug_spatial[3]);
 
 
 
 
 
-  return 0;
+	return 0;
 
-  
-  
-  
 
-}
+
+
+
+  }

@@ -11,4 +11,5 @@ for i in {0..1000}; do
   cp output_3.ppm output_${i}_3.ppm
 done
 
-ffmpeg -framerate $FRAMERATE -pattern_type glob -i "output_*.ppm" -c:v libx264 -pix_fmt rgb24 out.mp4 
+# -crf 0 is very important, for losslessness
+ffmpeg -framerate $FRAMERATE -pattern_type glob -i "output_*.ppm" -c:v libx264 -pix_fmt rgb24 -crf 0 out.mkv

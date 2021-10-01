@@ -9,3 +9,10 @@ for i in {1..15}; do
   b=`expr 16 \* 43 + $i`
   ./patgen.py solid 100 100 4095 $r $g $b > testimage_solid_100_100_${r}_${g}_${b}_offset_${i}.ppm
 done
+
+for i in {1..1}; do
+  r=`expr 16 \* 192 + $i`
+  g=`expr 16 \* 57 + $i`
+  b=`expr 16 \* 43 + $i`
+  ./patgen.py gradient 100 100 4095 $r $g $b 1 > testimage_gradient_${r}_${g}_${b}_gradient_step_1.ppm 
+done

@@ -13,7 +13,7 @@ def main():
         print("Subcommand not implemented.")
         sys.exit(1)
     else: # gradient command
-        gradient_step = sys.argv[8]
+        gradient_step = int(sys.argv[8])
 
 
     width = int(sys.argv[2])
@@ -26,9 +26,9 @@ def main():
     sys.stdout.write("P3 " + str(width) + " " + str(height) + " " + str(maxval) + "\n")
     for y in range(100):
         for x in range(100):
-            sys.stdout.write(str(color_r + gradient_step) + " ")
-            sys.stdout.write(str(color_g + gradient_step) + " ")
-            sys.stdout.write(str(color_b + gradient_step) + " ")
+            sys.stdout.write(str(color_r + y*gradient_step) + " ")
+            sys.stdout.write(str(color_g + y*gradient_step) + " ")
+            sys.stdout.write(str(color_b + y*gradient_step) + " ")
         sys.stdout.write("\n")
 
 

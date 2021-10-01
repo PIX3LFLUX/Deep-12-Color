@@ -6,9 +6,18 @@ tristan/*.mp4
 tristan/*/*.mp4
 tristan/*/*/*.mp4
 
+tristan/*.mkv
+tristan/*/*.mkv
+tristan/*/*/*.mkv
+!tristan/c_simulator/demo_results/*
+
 tristan/.DS_Store
 tristan/*/.DS_Store
 tristan/*/*/.DS_Store
 
 */*/main
 */*/main.dSYM
+
+*.avi
+
+.DS_Store

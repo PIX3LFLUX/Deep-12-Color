@@ -10,10 +10,21 @@ FRAMES_DEBUG=100
 cp ../debug_* .
 
 for i in {0..100}; do
-  cp debug_0.ppm debug_${i}_0.ppm
-  cp debug_1.ppm debug_${i}_1.ppm
-  cp debug_2.ppm debug_${i}_2.ppm
-  cp debug_3.ppm debug_${i}_3.ppm
+  cp debug_temporal_0.ppm debug_temporal_${i}_0.ppm
+  cp debug_temporal_1.ppm debug_temporal_${i}_1.ppm
+  cp debug_temporal_2.ppm debug_temporal_${i}_2.ppm
+  cp debug_temporal_3.ppm debug_temporal_${i}_3.ppm
 done
 
-ffmpeg -framerate $FRAMERATE_DEBUG -pattern_type glob -i 'debug*.ppm' -c:v libx264 -pix_fmt rgb24 out_debug.mp4 
+rm out_debug_temporal.mkv
+ffmpeg -framerate $FRAMERATE_DEBUG -pattern_type glob -i 'debug_temporal*.ppm' -c:v libx264 -pix_fmt rgb24 -crf 0 out_debug_temporal.mkv
+
+for i in {0..100}; do
+  cp debug_spatial_0.ppm debug_spatial_${i}_0.ppm
+  cp debug_spatial_1.ppm debug_spatial_${i}_1.ppm
+  cp debug_spatial_2.ppm debug_spatial_${i}_2.ppm
+  cp debug_spatial_3.ppm debug_spatial_${i}_3.ppm
+done
+
+rm out_debug_spatial.mkv
+ffmpeg -framerate $FRAMERATE_DEBUG -pattern_type glob -i 'debug_spatial*.ppm' -c:v libx264 -pix_fmt rgb24 -crf 0 out_debug_spatial.mkv

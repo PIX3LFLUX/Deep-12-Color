@@ -28,3 +28,5 @@ done
 
 rm out_debug_spatial.mkv
 ffmpeg -framerate $FRAMERATE_DEBUG -pattern_type glob -i 'debug_spatial*.ppm' -c:v libx264 -pix_fmt rgb24 -crf 0 out_debug_spatial.mkv
+
+rm *ppm

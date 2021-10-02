@@ -13,3 +13,5 @@ done
 
 # -crf 0 is very important, for losslessness
 ffmpeg -framerate $FRAMERATE -pattern_type glob -i "output_*.ppm" -c:v libx264 -pix_fmt rgb24 -crf 0 out.mkv
+
+rm *ppm

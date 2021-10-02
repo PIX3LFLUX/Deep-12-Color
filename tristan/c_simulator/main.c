@@ -72,171 +72,150 @@ int main(int argc, char ** argv) {
   /* 
    * logic for temporal dithering 
    */
+  int option_subpixel_scrambling = 1; // integrate with other options
   for( int i = 0; i < width*height; i++) {
 	//printf("%i ", ((((i/3) / width) % 2)*2 + (i/3) % width) % 4);
 	int offset = (((i / width) % 4) + (i) % width) % 4;
 	/*
 	 * TODO: comment. this is totally incomprehensible
-	 * support triple color, not just one
 	 */
 	int position = 3*i;
+	for (int color = 0; color < 3; color++) {
+	  // printf("Writing to position %i\n", position + color);
 #ifdef SWITCH_TEMP_SPAT_BITS
-	switch((data[i] & 0b0000000000000011)) 
+	  switch((data[position+color] & 0b0000000000000011)) 
 #else
-	  switch((data[i] & 0b0000000000001100) >> 2) 
+		switch((data[position+color] & 0b0000000000001100) >> 2) 
 #endif
-	  {
-		case 1: 
-		  printf("Adding 1/4 pixel\n");
-		  output[offset][position]++; // r
-		  output[offset][position+1]++; // g 
-		  output[offset][position+2]++; // b
+		{
+		  case 1: 
+			printf("Adding 1/4 pixel\n");
+			output[(offset + option_subpixel_scrambling*color) % 4][position+color]++; // r
 
-		  debug[offset][position]++;
-		  debug[offset][position+1]++;
-		  debug[offset][position+2]++;
-		  break;
-		case 2: 
-		  printf("Adding 1/2 pixel\n");
-		  output[offset][position]++;
-		  output[offset][position+1]++;
-		  output[offset][position+2]++;
-		  output[(offset + 2) % 4][position]++;
-		  output[(offset + 2) % 4][position+1]++;
-		  output[(offset + 2) % 4][position+2]++;
+			debug[(offset + option_subpixel_scrambling*color) % 4][position+color]++;
+			break;
+		  case 2: 
+			printf("Adding 1/2 pixel\n");
+			output[(offset + option_subpixel_scrambling*color) % 4][position+color]++;
+			output[((offset + option_subpixel_scrambling*color) + 2) % 4][position+color]++;
 
-		  debug[offset][position]++;
-		  debug[offset][position+1]++;
-		  debug[offset][position+2]++;
-		  debug[(offset + 2) % 4][position]++;
-		  debug[(offset + 2) % 4][position+1]++;
-		  debug[(offset + 2) % 4][position+2]++;
-		  break;
-		case 3: 
-		  printf("Adding 3/4 pixel\n");
-		  output[offset][position]++;
-		  output[offset][position+1]++;
-		  output[offset][position+2]++;
-		  output[(offset + 1) % 4][position]++;
-		  output[(offset + 1) % 4][position+1]++;
-		  output[(offset + 1) % 4][position+2]++;
-		  output[(offset + 2) % 4][position]++;
-		  output[(offset + 2) % 4][position+1]++;
-		  output[(offset + 2) % 4][position+2]++;
+			debug[(offset + option_subpixel_scrambling*color) % 4][position+color]++;
+			debug[((offset + option_subpixel_scrambling*color) + 2) % 4][position+color]++;
+			break;
+		  case 3: 
+			printf("Adding 3/4 pixel\n");
+			output[(offset + option_subpixel_scrambling*color) % 4][position+color]++;
+			output[((offset + option_subpixel_scrambling*color) + 1) % 4][position+color]++;
+			output[((offset + option_subpixel_scrambling*color) + 2) % 4][position+color]++;
 
-		  debug[offset][position]++;
-		  debug[offset][position+1]++;
-		  debug[offset][position+2]++;
-		  debug[(offset + 1) % 4][position]++;
-		  debug[(offset + 1) % 4][position+1]++;
-		  debug[(offset + 1) % 4][position+2]++;
-		  debug[(offset + 2) % 4][position]++;
-		  debug[(offset + 2) % 4][position+1]++;
-		  debug[(offset + 2) % 4][position+2]++;
-		  break;
-		default:
-		  break;
+			debug[(offset + option_subpixel_scrambling*color) % 4][position+color]++;
+			debug[((offset + option_subpixel_scrambling*color) + 1) % 4][position+color]++;
+			debug[((offset + option_subpixel_scrambling*color) + 2) % 4][position+color]++;
+			break;
+		  default:
+			break;
 
-	  }
+		}
+	}
   }
 
-  /*
-   * logic for spatial dithering
-   */
-  printf("About to start spatial dithering.\n");
+	/*
+	 * logic for spatial dithering
+	 */
+	printf("About to start spatial dithering.\n");
 
 
-  // loop over image in tiles of 2x2
-  if (width%2 || height % 2) {
-	printf("Image not splitable in tiles of size 2x2\n");
-	exit(1);
-  }
+	// loop over image in tiles of 2x2
+	if (width%2 || height % 2) {
+	  printf("Image not splitable in tiles of size 2x2\n");
+	  exit(1);
+	}
 
-  for( int y = 0; y < height/2; y++) {
-	for( int x = 0; x < width/2; x++) {
-	  for( int color = 0; color < 3; color++) {
+	for( int y = 0; y < height/2; y++) {
+	  for( int x = 0; x < width/2; x++) {
+		for( int color = 0; color < 3; color++) {
 #ifdef SWITCH_TEMP_SPAT_BITS
-		switch(data[ind(width, x, y, color, 0)] & 0b0000000000001100 >> 2) 
+		  switch(data[ind(width, x, y, color, 0)] & 0b0000000000001100 >> 2) 
 #else
-		  switch(data[ind(width, x, y, color, 0)] & 0b0000000000000011) 
+			switch(data[ind(width, x, y, color, 0)] & 0b0000000000000011) 
 #endif
-		  {
-			case 1:
-			  output[0][ind(width, x, y, color, 0)]++;
+			{
+			  case 1:
+				output[0][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[1][ind(width, x, y, color, 1)]++;
+				output[1][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[2][ind(width, x, y, color, 2)]++;
+				output[2][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[3][ind(width, x, y, color, 3)]++;
-			  debug_spatial[0][ind(width, x, y, color, 0)]++;
+				output[3][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[0][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[1][ind(width, x, y, color, 1)]++;
+				debug_spatial[1][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[2][ind(width, x, y, color, 2)]++;
+				debug_spatial[2][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[3][ind(width, x, y, color, 3)]++;
-			  break;
-			case 2:
-			  output[0][ind(width, x, y, color, 0)]++;
-			  output[0][ind(width, x, y, color, 3)]++;
+				debug_spatial[3][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
+				break;
+			  case 2:
+				output[0][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				output[0][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[1][ind(width, x, y, color, 1)]++;
-			  output[1][ind(width, x, y, color, 2)]++;
+				output[1][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				output[1][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[2][ind(width, x, y, color, 0)]++;
-			  output[2][ind(width, x, y, color, 3)]++;
+				output[2][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				output[2][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[3][ind(width, x, y, color, 1)]++;
-			  output[3][ind(width, x, y, color, 2)]++;
-			  debug_spatial[0][ind(width, x, y, color, 0)]++;
-			  debug_spatial[0][ind(width, x, y, color, 3)]++;
+				output[3][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				output[3][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[0][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[0][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[1][ind(width, x, y, color, 1)]++;
-			  debug_spatial[1][ind(width, x, y, color, 2)]++;
+				debug_spatial[1][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[1][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[2][ind(width, x, y, color, 0)]++;
-			  debug_spatial[2][ind(width, x, y, color, 3)]++;
+				debug_spatial[2][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[2][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[3][ind(width, x, y, color, 1)]++;
-			  debug_spatial[3][ind(width, x, y, color, 2)]++;
-			  break;
-			case 3:
-			  output[0][ind(width, x, y, color, 0)]++;
-			  output[0][ind(width, x, y, color, 1)]++;
-			  output[0][ind(width, x, y, color, 2)]++;
+				debug_spatial[3][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[3][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
+				break;
+			  case 3:
+				output[0][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				output[0][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				output[0][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[1][ind(width, x, y, color, 1)]++;
-			  output[1][ind(width, x, y, color, 2)]++;
-			  output[1][ind(width, x, y, color, 3)]++;
+				output[1][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				output[1][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
+				output[1][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[2][ind(width, x, y, color, 2)]++;
-			  output[2][ind(width, x, y, color, 3)]++;
-			  output[2][ind(width, x, y, color, 0)]++;
+				output[2][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
+				output[2][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
+				output[2][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
 
-			  output[3][ind(width, x, y, color, 3)]++;
-			  output[3][ind(width, x, y, color, 0)]++;
-			  output[3][ind(width, x, y, color, 1)]++;
-			  debug_spatial[0][ind(width, x, y, color, 0)]++;
-			  debug_spatial[0][ind(width, x, y, color, 1)]++;
-			  debug_spatial[0][ind(width, x, y, color, 2)]++;
+				output[3][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
+				output[3][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				output[3][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[0][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[0][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[0][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[1][ind(width, x, y, color, 1)]++;
-			  debug_spatial[1][ind(width, x, y, color, 2)]++;
-			  debug_spatial[1][ind(width, x, y, color, 3)]++;
+				debug_spatial[1][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[1][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[1][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[2][ind(width, x, y, color, 2)]++;
-			  debug_spatial[2][ind(width, x, y, color, 3)]++;
-			  debug_spatial[2][ind(width, x, y, color, 0)]++;
+				debug_spatial[2][ind(width, x, y, color, (2 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[2][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[2][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
 
-			  debug_spatial[3][ind(width, x, y, color, 3)]++;
-			  debug_spatial[3][ind(width, x, y, color, 0)]++;
-			  debug_spatial[3][ind(width, x, y, color, 1)]++;
-			  break;
-			default:
-			  break;
-		  }
-	  }
+				debug_spatial[3][ind(width, x, y, color, (3 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[3][ind(width, x, y, color, (0 + option_subpixel_scrambling*color) % 4)]++;
+				debug_spatial[3][ind(width, x, y, color, (1 + option_subpixel_scrambling*color) % 4)]++;
+				break;
+			  default:
+				break;
+			}
+		}
 	}
   }
   ppm_write("output_0.ppm", width, height, 255, output[0]);

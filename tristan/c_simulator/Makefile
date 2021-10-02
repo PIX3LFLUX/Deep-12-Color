@@ -1,4 +1,4 @@
 
 
 all:
-	gcc -g main.c -o main
+	gcc -g ppm.c main.c -o main

@@ -197,7 +197,6 @@ int ind(int width, int tile_x, int tile_y, int color, int position) {
   return x;
 }
 
-
 int main(int argc, char ** argv) {
   /*
    * TODO:

@@ -10,8 +10,10 @@ Auf den meisten Bildschirmen, die heutzutage Verwendung finden, kann eine Bittie
 Das menschliche auge hat im besten Fall ein begrenztes räumliches auflösungsvermögen von einer Bogenminute(60 Bogenminuten entspricht einem Grad). Alles was sich horizontal und vertigkal innerhalb dieser Bogenminute befindet sehen wir als einen Punkt, wobei wir die Farbinformationen gemittelt sehen.  Diese Eigenschaft kann bei den meisten Bildschirmen erfüllt werden, wenn man 4 Pixel nimmt, die beieinander liegen. 
 
 Ein Pixel besteht aus einer rot, grün und blau leuchtenden Flächen. Diese entsprechen den Farbkanälen und die Leuchtintensität der Farbkanäle wird mittels binärer Zahlen dargestellt. Will man jetzt eine Reduktion um 2 Bit vornhemen, so löscht man die letzten beiden Bits. Man verliert dabei 4 Farbstufen in dem Farbkanal. Will man die 4 Farbstufen wieder gewinnen, nimmt man 4 benachbarte Pixel zusammen und addiert jeweils auf den gelöschten Farbkanal folgende Muster:
+
 0 0 | 1 0 | 0 1 | 0 1 
 0 0 | 0 0 | 1 0 | 1 1
+
 Jede Zahl enspricht einem Pixel, also 2x2 Pixel. Beim ganz linkten Muster hatten die gelöschten Bits den Wert 0 und steigen dann auf bis ganz rechts dem Wert von 3. 
 
 Dies ist prinzipiell die funktionsweise des räumlichen Dithering. In der Implementierung sind diese Muster immernoch vorhanden, allerdings je nach Position rotiert womit in Kombination mit dem zeitlichen Dithering eine bessere Verteilung der hellen und dunklen Farbkanäle der einzelnen Pixel erzeugt wird. 

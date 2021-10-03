@@ -11,9 +11,9 @@ Das menschliche auge hat im besten Fall ein begrenztes räumliches auflösungsve
 
 Ein Pixel besteht aus einer rot, grün und blau leuchtenden Flächen. Diese entsprechen den Farbkanälen und die Leuchtintensität der Farbkanäle wird mittels binärer Zahlen dargestellt. Will man jetzt eine Reduktion um 2 Bit vornhemen, so löscht man die letzten beiden Bits. Man verliert dabei 4 Farbstufen in dem Farbkanal. Will man die 4 Farbstufen wieder gewinnen, nimmt man 4 benachbarte Pixel zusammen und addiert jeweils auf den gelöschten Farbkanal folgende Muster:
 
-0 0 | 1 0 | 0 1 | 0 1 
+0  0 | 1  0 | 0  1 | 0  1 
 
-0 0 | 0 0 | 1 0 | 1 1
+0  0 | 0  0 | 1  0 | 1  1
 
 Jede Zahl enspricht einem Pixel, also 2x2 Pixel. Beim ganz linkten Muster hatten die gelöschten Bits den Wert 0 und steigen dann auf bis ganz rechts dem Wert von 3. 
 
@@ -22,8 +22,11 @@ Dies ist prinzipiell die funktionsweise des räumlichen Dithering. In der Implem
 Beim zeitlichen Dithering wird das begrenzte zeitliche Auflösungsvermögen des Auges ausgenutzt. Die Grenze hierbei liegt bei einer Aktualisierungsrate von 50-60Hz. Wenn also eine Fläche innerhalb des zeitlichen Auflösungsvermögen die Farbe wechselt, nehmen wir diese Farben gemittelt wahr. Beim zeitlichen Dithering löscht man auch die letzten beiden Bits und addiert anschließend zum erhalt der ursprünglichen 4 Farbstufen des Farbkanals folgende Schemen je nach Wert der gelöschten Pixel:
 
 gelöschte Bits haben den Wert Null:  0 | 0 | 0 | 0
+
 gelöschte Bits haben den Wert Eins:  1 | 0 | 0 | 0
+
 gelöschte Bits haben den Wert Zwei:  1 | 0 | 1 | 0
+
 gelöschte Bits haben den Wert drei: 0 | 1 | 1 | 1
 
 In horizontaler Richtung haben wir dieses mal die Framenummer. Die 1 wird in diesem Fall auf den Farbkanal aller Pixel addiert. 

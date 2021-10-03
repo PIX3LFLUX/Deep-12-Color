@@ -11,9 +11,8 @@ Das menschliche auge hat im besten Fall ein begrenztes räumliches auflösungsve
 
 Ein Pixel besteht aus einer rot, grün und blau leuchtenden Flächen. Diese entsprechen den Farbkanälen und die Leuchtintensität der Farbkanäle wird mittels binärer Zahlen dargestellt. Will man jetzt eine Reduktion um 2 Bit vornhemen, so löscht man die letzten beiden Bits. Man verliert dabei 4 Farbstufen in dem Farbkanal. Will man die 4 Farbstufen wieder gewinnen, nimmt man 4 benachbarte Pixel zusammen und addiert jeweils auf den gelöschten Farbkanal folgende Muster:
 
-0  0 | 1  0 | 0  1 | 0  1 
-
-0  0 | 0  0 | 1  0 | 1  1
+* 0  0 | 1  0 | 0  1 | 0  1 
+* 0  0 | 0  0 | 1  0 | 1  1
 
 Jede Zahl enspricht einem Pixel, also 2x2 Pixel. Beim ganz linkten Muster hatten die gelöschten Bits den Wert 0 und steigen dann auf bis ganz rechts dem Wert von 3. 
 
@@ -36,7 +35,9 @@ Dies ist prinzipiell die funktionsweise des zeitlichen Ditherings, da wir bei de
 ## Benötigte Hardware
 Zybo Z7-20
 2 HDMI Kabel
+
 1 Bildschirm, Farbtiefe 8 Bit, Aktualisierungsrate 60Hz
+
 1 Quelle, Farbtiefe 8 Bit im RBG-Format
 ## Benötigte Software
 Matlab R2020a 
